@@ -43,7 +43,7 @@ router.get('/games', requireToken, (req, res, next) => {
     .catch(next)
 })
 
-// SHOW
+// SHOW - Not currently being used
 // GET /games/5a7db6c74d55bc51bdf39793
 router.get('/games/:id', requireToken, (req, res, next) => {
   // req.params.id will be set based on the `:id` in the route
@@ -51,6 +51,23 @@ router.get('/games/:id', requireToken, (req, res, next) => {
     .then(handle404)
     // if `findById` is succesful, respond with 200 and "example" JSON
     .then(game => res.status(200).json({ game: game.toObject() }))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
+
+// SHOW -Get Leaders
+// GET /leaders
+router.get('/leaders', requireToken, (req, res, next) => {
+  Game.find({ active: false }, null, { sort: { 'grand_total': -1 } })
+    .populate('owner')
+    .then(games => {
+      // `games` will be an array of Mongoose documents
+      // we want to convert each one to a POJO, so we use `.map` to
+      // apply `.toObject` to each one
+      return games.map(game => game.toObject())
+    })
+    // respond with status 200 and JSON of the games
+    .then(games => res.status(200).json({ games: games }))
     // if an error occurs, pass it to the handler
     .catch(next)
 })
